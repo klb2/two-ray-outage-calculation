@@ -20,3 +20,6 @@ python3 outage_probability.py -v -r "$HRX" -t "$HTX" -f "$FREQ" -df "$DF" --plot
 
 echo "Figure: Sum power, lower envelope, and approximations"
 python3 two_frequencies.py -v -r "$HRX" -t "$HTX" -f "$FREQ" -df "$DF" --plot --export
+
+echo "Figure: Eps-outage power over frequency spacing"
+python3 eps_outage_dw.py -v -r "$HRX" -t "$HTX" -f "$FREQ" -df "$DF" --plot --export --eps "1e-3"
