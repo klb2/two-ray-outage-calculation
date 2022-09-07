@@ -47,6 +47,8 @@ def main_power_intervals(freq, h_tx, h_rx, df: float, sensitivity: float,
         axs.semilogx(distance, power_db)
         axs.vlines(dist_min, *ylim, colors='g', ls='--')
         axs.vlines(dist_max, *ylim, colors='r', ls='-.')
+        axs.vlines(_d_intersect_positive, *ylim, colors='k', ls='dotted')
+        axs.vlines(_d_intersect_negative, *ylim, colors='k', ls='dotted')
         axs.hlines(sensitivity, *xlim, colors='k')
 
 
