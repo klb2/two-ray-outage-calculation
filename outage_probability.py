@@ -89,8 +89,9 @@ def main_outage_prob_power(freq, h_tx, h_rx, df: float,
                 f"f1={freq:E}, h_tx={h_tx:.1f}, h_rx={h_rx:.1f}")
     LOGGER.info(f"Number of samples: {num_samples:E}")
     
-    rv_distance = stats.expon(loc=10, scale=15)
+    #rv_distance = stats.expon(loc=10, scale=15)
     #rv_distance = stats.uniform(loc=d_min, scale=d_max-d_min)
+    rv_distance = stats.uniform(loc=50, scale=40)
     distance = rv_distance.rvs(size=num_samples)
     powers_rv = _main_power_rv(distance, freq, h_tx, h_rx, df)
 
