@@ -16,7 +16,6 @@ LOGGER = logging.getLogger(__name__)
 def get_intersections(intervals, sensitivity, df, freq, h_tx, h_rx):
     def func_intersect(d, *args):
         return to_decibel(sum_power_lower_envelope(d, *args))-sensitivity
-        #return sum_power_lower_envelope(d, *args)-sens_lin
 
     d_intersect = []
     for _d_lower, _d_upper in intervals:
@@ -25,7 +24,6 @@ def get_intersections(intervals, sensitivity, df, freq, h_tx, h_rx):
                                                 args=(df, freq, h_tx, h_rx),
                                                 x0=_d_lower,
                                                 bracket=[_d_lower, _d_upper])
-            #print(f"Interval [{_d_lower:.1f}, {_d_upper:.1f}]:\n{_d_intersect}")
             _d_intersect = _d_intersect.root
             d_intersect.append(_d_intersect)
             #print(f"Interval [{_d_lower:.1f}, {_d_upper:.1f}]:\t{_d_intersect}")
@@ -41,7 +39,6 @@ def calculate_outage_prob(df, freq, h_tx, h_rx, sensitivity, rv_distance):
     
     sens_lin = 10**(sensitivity/10.)
     _dist_upper_limit = 2**(-3/4)*((freq**2+(freq+df)**2)/sens_lin)**(1/4) * np.sqrt(h_tx*h_rx*df/(freq*(freq+df)))
-    #_dist_upper_limit = 2*(1./10**(sensitivity/10.))**(1/4)*np.sqrt(h_tx*h_rx*df/(2*freq))
 
     _decreasing_intervals = zip(dist_max, np.concatenate(([_dist_upper_limit], dist_min)))
     _d_intersect_positive = get_intersections(_decreasing_intervals, sensitivity,
@@ -49,12 +46,6 @@ def calculate_outage_prob(df, freq, h_tx, h_rx, sensitivity, rv_distance):
     _increasing_intervals = zip(np.concatenate((dist_min, [0])), dist_max)
     _d_intersect_negative = get_intersections(_increasing_intervals, sensitivity,
                                               df, freq, h_tx, h_rx)
-    #_lim_power = to_decibel(sum_power_lower_envelope(0, df, freq, h_tx, h_rx))
-    #if _lim_power < sensitivity:
-    #    _d_intersect_positive.append(0)
-    #prob_mass_pos = rv_distance.sf(_d_intersect_positive)
-    #prob_mass_neg = rv_distance.sf(_d_intersect_negative)
-    #outage_prob = sum(prob_mass_pos)-sum(prob_mass_neg)
     prob_mass_neg = rv_distance.cdf(_d_intersect_positive)
     prob_mass_pos = rv_distance.cdf(_d_intersect_negative)
     outage_prob = 1 + sum(prob_mass_pos) - sum(prob_mass_neg)
@@ -77,7 +68,6 @@ def _main_power_rv(distance, freq, h_tx, h_rx, df):
               "twoActual": power_two,
               "twoLower": power_two_lower,
              }
-    #powers = {k: to_decibel(v) for k, v in powers.items()}
     powers_hist = {k: np.histogram(to_decibel(v), bins=200)
                    for k, v in powers.items()}
     powers_rv = {k: stats.rv_histogram(v) for k, v in powers_hist.items()}
@@ -89,13 +79,10 @@ def main_outage_prob_power(freq, h_tx, h_rx, df: float,
                 f"f1={freq:E}, h_tx={h_tx:.1f}, h_rx={h_rx:.1f}")
     LOGGER.info(f"Number of samples: {num_samples:E}")
     
-    #rv_distance = stats.expon(loc=10, scale=15)
-    #rv_distance = stats.uniform(loc=d_min, scale=d_max-d_min)
     rv_distance = stats.uniform(loc=50, scale=40)
     distance = rv_distance.rvs(size=num_samples)
     powers_rv = _main_power_rv(distance, freq, h_tx, h_rx, df)
 
-    #threshold = np.linspace(-100, -50, 2000)
     threshold = np.linspace(-120, -60, 1500)
     threshold_lin = 10**(threshold/10.)
     results = {k: v.cdf(threshold) for k, v in powers_rv.items()}

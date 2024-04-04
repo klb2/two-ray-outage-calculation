@@ -15,11 +15,6 @@ LOGGER = logging.getLogger(__name__)
 
 def gen_rv_distance():
     N = 5000
-    #X1 = stats.gamma.rvs(5, scale=10, size=N)
-    #X2 = stats.gamma.rvs(25, scale=5, size=N)
-    #X1 = stats.gamma.rvs(5, scale=25, size=N)
-    #X2 = stats.gamma.rvs(100, scale=6, size=N)
-    #X = np.concatenate([X1, X2])
     X1 = stats.norm.rvs(loc=20, scale=1, size=N)
     X2 = stats.norm.rvs(loc=50, scale=2, size=N)
     X3 = stats.norm.rvs(loc=100, scale=5, size=N)
@@ -45,20 +40,11 @@ def main_outage_prob(freq, h_tx, h_rx, df: float = None,
     num_samples = max([int(2/eps), num_samples])
     LOGGER.info(f"Simulating outage probability with parameters: f1={freq:E}, h_tx={h_tx:.1f}, h_rx={h_rx:.1f}")
     LOGGER.info(f"Number of samples: {num_samples:E}")
-    #rv_distance = stats.ncx2(5, 50, scale=2)
-    #rv_distance = stats.uniform(loc=10, scale=50-10)
     rv_distance = stats.expon(loc=10, scale=15)
-    #rv_distance = stats.expon(loc=50, scale=15)
-    #rv_distance = stats.gamma(20, loc=0, scale=10)
-    #rv_distance = stats.rayleigh(scale=20)
-    #rv_distance = stats.rayleigh(scale=50)
-    #rv_distance = gen_rv_distance()
     distance = rv_distance.rvs(size=num_samples)
 
     if df is None:
         df = np.logspace(7, np.log10(freq), 300)
-        #df = np.logspace(8, np.log10(2*freq), 150)
-        #df = np.logspace(7, 10, 300)
     results = {}
     for _df in df:
         LOGGER.info(f"Frequency spacing: {_df:E}")
@@ -66,17 +52,7 @@ def main_outage_prob(freq, h_tx, h_rx, df: float = None,
         for _k, _v in powers_rv.items():
             if _k not in results: results[_k] = []
             results[_k].append(_v.ppf(eps))
-    #approx_power = approx_eps_power(freq, df, rv_distance.ppf(1-eps), h_tx, h_rx)
-    #results["approxEpsPower"] = to_decibel(approx_power)
-    #_approx_min_s = [sum_power_lower_envelope(
-    #                    crit_dist(_df, h_tx, h_rx, k=1), _df, freq, h_tx, h_rx)
-    #                 for _df in df]
-    ##_dist_approx_lower = 2**(-3/4)*((freq**2+(freq+df)**2)/threshold_lin)**(1/4) * np.sqrt(h_tx*h_rx*df/(freq*(freq+df)))
-    ##approx_out_prob_upper = rv_distance.sf(_dist_approx_lower)
-    #LOGGER.info(f"The worst-case approximation is valid for: s < {to_decibel(_approx_min_s)}dB")
-    #results["boundApprox"] = to_decibel(_approx_min_s)
 
-    #print(results)
     if plot:
         fig, axs = plt.subplots()
         for _name, _prob in results.items():
@@ -98,14 +74,9 @@ def main_outage_prob_3d(freq, h_tx, h_rx, eps=1e-3, c=constants.c,
                         plot=False, export=False, **kwargs):
     LOGGER.info(f"Simulating outage probability with parameters: f1={freq:E}, h_tx={h_tx:.1f}, h_rx={h_rx:.1f}")
     LOGGER.info(f"Number of samples: {num_samples:E}")
-    #rv_distance = stats.ncx2(5, 50, scale=2)
-    #rv_distance = stats.uniform(loc=10, scale=50-10)
     rv_distance = stats.expon(loc=10, scale=15)
-    #rv_distance = stats.gamma(20, loc=0, scale=10)
-    #rv_distance = gen_rv_distance()
     distance = rv_distance.rvs(size=num_samples)
 
-    #df = np.logspace(7, np.log10(freq), 250)
     df = np.logspace(7, 10, 300)
     sensitivity = np.linspace(-100, -95, 10)
     outage_prob = np.zeros((len(sensitivity), len(df)))
@@ -118,7 +89,6 @@ def main_outage_prob_3d(freq, h_tx, h_rx, eps=1e-3, c=constants.c,
     DF = np.log(DF)
 
     fig, ax = plt.subplots(subplot_kw={"projection": "3d"})
-    #ax.pcolormesh(DF, S, np.log10(outage_prob), vmax=0)
     ax.plot_surface(DF, S, np.log10(outage_prob), cmap="viridis")
     ax.plot_wireframe(DF, S, np.log10(eps)*np.ones_like(DF), color="k")
     ax.set_xlabel("Delta Frequency")
